@@ -1,0 +1,54 @@
+.prompt-form {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.input-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 16px;
+}
+
+.char-count {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.error-message {
+    color: #f44336;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.submit-button {
+    background-color: #2196f3;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #1976d2;
+} 

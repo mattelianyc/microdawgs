@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: 
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ICON_SERVICE_URL=http://icon-service:8001
+      - SPLASH_SERVICE_URL=http://splash-service:8002
+      - LOG_LEVEL=INFO
+      - MAX_REQUESTS_PER_MINUTE=100
+    volumes:
+      - ./shared:/app/shared
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    depends_on:
+      - icon-service
+      - splash-service
+
+  icon-service:
+    build:
+      context: ./icon-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - MODEL_PATH=/app/models/fine_tuned
+      - CUDA_VISIBLE_DEVICES=0
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./shared:/app/shared
+      - ./icon-service/models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  splash-service:
+    build:
+      context: ./splash-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002" 
+    environment:
+      - MODEL_PATH=/app/models/fine_tuned
+      - CUDA_VISIBLE_DEVICES=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./shared:/app/shared
+      - ./splash-service/models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped 
