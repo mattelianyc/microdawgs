@@ -1,20 +1,28 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from shared.models.request_schemas import ImageGenerationRequest, BatchProcessingRequest
 from shared.models.response_schemas import ImageGenerationResponse, BatchJobResponse
-from shared.middleware.auth import JWTAuth
-from shared.middleware.rate_limiting import RateLimiter
 from ..services.orchestrator import ServiceOrchestrator
 from ..services.queue import JobQueue
 from ..validators.image import validate_image
 from ..validators.prompt import validate_prompt
 import logging
+from ..middleware.rate_limiting import RateLimiter
+from ..config import Settings  # Import Settings to access redis_url
+from shared.middleware.auth import JWTAuth  # Import JWTAuth
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Create an instance of RateLimiter with redis_url from settings
+settings = Settings()
+rate_limiter = RateLimiter(redis_url=settings.redis_url)
+
+# Create an instance of JWTAuth
+auth = JWTAuth(secret_key=settings.jwt_secret)
+
 @router.post("/generate", response_model=ImageGenerationResponse)
-@RateLimiter.rate_limit()
-@JWTAuth.requires_auth()
+@rate_limiter.rate_limit()
+@auth.requires_auth()  # Use the instance to call requires_auth
 async def generate_image(
     request: ImageGenerationRequest,
     orchestrator: ServiceOrchestrator = Depends()
@@ -34,8 +42,8 @@ async def generate_image(
     }
 
 @router.post("/batch", response_model=BatchJobResponse)
-@RateLimiter.rate_limit()
-@JWTAuth.requires_auth()
+@rate_limiter.rate_limit()
+@auth.requires_auth()  # Use the instance to call requires_auth
 async def batch_process(
     request: BatchProcessingRequest,
     queue: JobQueue = Depends()
@@ -52,7 +60,7 @@ async def batch_process(
     }
 
 @router.get("/batch/{job_id}", response_model=BatchJobResponse)
-@JWTAuth.requires_auth()
+@auth.requires_auth()  # Use the instance to call requires_auth
 async def get_batch_status(
     job_id: str,
     queue: JobQueue = Depends()
@@ -70,8 +78,8 @@ async def get_batch_status(
     }
 
 @router.post("/upload", response_model=ImageGenerationResponse)
-@RateLimiter.rate_limit()
-@JWTAuth.requires_auth()
+@rate_limiter.rate_limit()
+@auth.requires_auth()  # Use the instance to call requires_auth
 async def upload_reference(
     file: UploadFile = File(...),
     orchestrator: ServiceOrchestrator = Depends()

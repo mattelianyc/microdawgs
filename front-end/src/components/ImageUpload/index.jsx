@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import './styles.css';
 
-const ImageUpload = ({ onUpload, maxSize = 10485760, accept = 'image/*' }) => {
+const ImageUpload = ({ onUpload, maxSize = 10485760 }) => {
     const [preview, setPreview] = useState(null);
     const [error, setError] = useState(null);
 
@@ -33,7 +33,9 @@ const ImageUpload = ({ onUpload, maxSize = 10485760, accept = 'image/*' }) => {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept,
+        accept: {
+            'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+        },
         maxSize,
         multiple: false
     });

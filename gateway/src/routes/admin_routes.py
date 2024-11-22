@@ -1,15 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from shared.models.response_schemas import BaseServiceResponse
-from shared.middleware.auth import JWTAuth
 from ..services.orchestrator import ServiceOrchestrator
 from ..services.queue import JobQueue
+from ..config import Settings  # Import Settings to access jwt_secret
+from shared.middleware.auth import JWTAuth  # Import JWTAuth
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Create an instance of JWTAuth
+settings = Settings()
+auth = JWTAuth(secret_key=settings.jwt_secret)
+
 @router.get("/stats", response_model=BaseServiceResponse)
-@JWTAuth.requires_auth(roles=["admin"])
+@auth.requires_auth(roles=["admin"])  # Use the instance to call requires_auth
 async def get_stats(
     orchestrator: ServiceOrchestrator = Depends()
 ):
@@ -23,7 +28,7 @@ async def get_stats(
     }
 
 @router.post("/maintenance", response_model=BaseServiceResponse)
-@JWTAuth.requires_auth(roles=["admin"])
+@auth.requires_auth(roles=["admin"])  # Use the instance to call requires_auth
 async def set_maintenance(
     enabled: bool,
     orchestrator: ServiceOrchestrator = Depends()
@@ -38,7 +43,7 @@ async def set_maintenance(
     }
 
 @router.delete("/jobs/{job_id}", response_model=BaseServiceResponse)
-@JWTAuth.requires_auth(roles=["admin"])
+@auth.requires_auth(roles=["admin"])  # Use the instance to call requires_auth
 async def cancel_job(
     job_id: str,
     queue: JobQueue = Depends()
@@ -56,7 +61,7 @@ async def cancel_job(
     }
 
 @router.post("/reload", response_model=BaseServiceResponse)
-@JWTAuth.requires_auth(roles=["admin"])
+@auth.requires_auth(roles=["admin"])  # Use the instance to call requires_auth
 async def reload_models(
     orchestrator: ServiceOrchestrator = Depends()
 ):

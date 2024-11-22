@@ -1,79 +1,54 @@
 version: '3.8'
 
 services:
-  gateway:
-    build: 
-      context: ./gateway
-      dockerfile: Dockerfile
+  frontend:
+    build: ./front-end
     ports:
-      - "8000:8000"
-    environment:
-      - ICON_SERVICE_URL=http://icon-service:8001
-      - SPLASH_SERVICE_URL=http://splash-service:8002
-      - LOG_LEVEL=INFO
-      - MAX_REQUESTS_PER_MINUTE=100
+      - "3001:3001"
     volumes:
+      - ./front-end:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+      - PORT=3001
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway:/app
       - ./shared:/app/shared
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
+      - /app/__pycache__
+    environment:
+      - PYTHONPATH=/app
     depends_on:
-      - icon-service
-      - splash-service
+      - redis
 
   icon-service:
-    build:
-      context: ./icon-service
-      dockerfile: Dockerfile
+    build: ./icon-service
     ports:
       - "8001:8001"
-    environment:
-      - MODEL_PATH=/app/models/fine_tuned
-      - CUDA_VISIBLE_DEVICES=0
-      - LOG_LEVEL=INFO
     volumes:
+      - ./icon-service:/app
       - ./shared:/app/shared
-      - ./icon-service/models:/app/models
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
+      - /app/__pycache__
+    environment:
+      - PYTHONPATH=/app
 
   splash-service:
-    build:
-      context: ./splash-service
-      dockerfile: Dockerfile
+    build: ./splash-service
     ports:
-      - "8002:8002" 
-    environment:
-      - MODEL_PATH=/app/models/fine_tuned
-      - CUDA_VISIBLE_DEVICES=1
-      - LOG_LEVEL=INFO
+      - "8002:8002"
     volumes:
+      - ./splash-service:/app
       - ./shared:/app/shared
-      - ./splash-service/models:/app/models
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped 
+      - /app/__pycache__
+    environment:
+      - PYTHONPATH=/app
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
