@@ -2,7 +2,6 @@ from typing import Optional, Dict, Any
 import time
 import logging
 import psutil
-import GPUtil
 from datetime import datetime
 from prometheus_client import Counter, Histogram, Gauge
 import opentelemetry.trace as trace
@@ -23,10 +22,9 @@ REQUEST_LATENCY = Histogram(
     ['method', 'endpoint']
 )
 
-GPU_MEMORY_USAGE = Gauge(
-    'gpu_memory_usage_bytes',
-    'GPU memory usage in bytes',
-    ['device']
+MEMORY_USAGE = Gauge(
+    'memory_usage_bytes',
+    'Memory usage in bytes'
 )
 
 class TelemetryMiddleware:
@@ -62,29 +60,8 @@ class TelemetryMiddleware:
             }
         }
         
-        # Collect GPU metrics if available
-        try:
-            gpus = GPUtil.getGPUs()
-            metrics["gpu"] = [{
-                "id": gpu.id,
-                "name": gpu.name,
-                "memory": {
-                    "total": gpu.memoryTotal,
-                    "used": gpu.memoryUsed,
-                    "free": gpu.memoryFree
-                },
-                "temperature": gpu.temperature,
-                "load": gpu.load
-            } for gpu in gpus]
-            
-            # Update Prometheus GPU metrics
-            for gpu in gpus:
-                GPU_MEMORY_USAGE.labels(device=gpu.id).set(
-                    gpu.memoryUsed * 1024 * 1024  # Convert to bytes
-                )
-                
-        except Exception as e:
-            logger.warning(f"Failed to collect GPU metrics: {str(e)}")
+        # Update Prometheus memory metrics
+        MEMORY_USAGE.set(psutil.virtual_memory().used)
             
         return metrics
 

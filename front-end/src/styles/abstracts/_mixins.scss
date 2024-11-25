@@ -1,0 +1,55 @@
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Button mixins
+@mixin button-base {
+  padding: $spacing-md;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-size: $font-size-md;
+  transition: background-color $transition-speed ease;
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: $primary-color;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-dark;
+  }
+
+  &:disabled {
+    background-color: $border-color;
+    cursor: not-allowed;
+  }
+}
+
+// Message mixins
+@mixin message-base {
+  padding: $spacing-sm;
+  border-radius: $border-radius-sm;
+  margin: $spacing-sm 0;
+}
+
+@mixin message-error {
+  @include message-base;
+  color: $error-color;
+  background: lighten($error-color, 40%);
+}
+
+@mixin message-success {
+  @include message-base;
+  color: $success-color;
+  background: lighten($success-color, 40%);
+} 

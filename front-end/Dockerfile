@@ -15,7 +15,7 @@ RUN npm ci --legacy-peer-deps
 
 # Set environment variables
 ENV NODE_ENV=development
-ENV REACT_APP_API_URL=http://localhost:8080
+ENV REACT_APP_API_URL=http://localhost:8000
 ENV PORT=3001
 
 # Copy the rest of the application

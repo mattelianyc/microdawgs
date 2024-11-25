@@ -2,53 +2,50 @@ version: '3.8'
 
 services:
   frontend:
-    build: ./front-end
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     volumes:
       - ./front-end:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:8080
-      - PORT=3001
-
-  gateway:
-    build: ./gateway
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./gateway:/app
-      - ./shared:/app/shared
-      - /app/__pycache__
-    environment:
-      - PYTHONPATH=/app
-    depends_on:
-      - redis
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
 
   icon-service:
-    build: ./icon-service
+    build:
+      context: ./icon-service
+      dockerfile: Dockerfile
     ports:
-      - "8001:8001"
+      - "8000:8000"
     volumes:
       - ./icon-service:/app
-      - ./shared:/app/shared
-      - /app/__pycache__
+      - /app/models
     environment:
-      - PYTHONPATH=/app
+      - MODEL_PATH=/app/models
+      - TRANSFORMERS_CACHE=/app/models/cache
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
 
-  splash-service:
-    build: ./splash-service
-    ports:
-      - "8002:8002"
-    volumes:
-      - ./splash-service:/app
-      - ./shared:/app/shared
-      - /app/__pycache__
-    environment:
-      - PYTHONPATH=/app
+volumes:
+  model-data:
+    driver: local
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+networks:
+  app-network:
+    driver: bridge
 

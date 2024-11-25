@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import './styles.css';
 
 const ImageUpload = ({ onUpload, maxSize = 10485760 }) => {
     const [preview, setPreview] = useState(null);

@@ -1,20 +1,20 @@
 import React from 'react';
-import './styles.css';
 
 const InfluenceSlider = ({
-    value,
-    onChange,
+    value = 0.5,
+    onChange = () => {},
     min = 0,
     max = 1,
     step = 0.1,
     label = "Style Strength"
 }) => {
-    const percentage = ((value - min) / (max - min)) * 100;
+    const safeValue = Math.min(Math.max(Number(value) || 0.5, min), max);
+    const percentage = ((safeValue - min) / (max - min)) * 100;
 
     return (
         <div className="influence-slider">
             <label>
-                {label}: {value.toFixed(1)}
+                {label}: {safeValue.toFixed(1)}
             </label>
             <div className="slider-container">
                 <input
@@ -22,7 +22,7 @@ const InfluenceSlider = ({
                     min={min}
                     max={max}
                     step={step}
-                    value={value}
+                    value={safeValue}
                     onChange={(e) => onChange(parseFloat(e.target.value))}
                     className="slider"
                     style={{

@@ -1,30 +1,26 @@
 .image-upload-container {
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
+  margin: 20px 0;
 }
 
-.dropzone {
-    border: 2px dashed #ccc;
-    border-radius: 4px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border 0.3s ease;
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
 }
 
-.dropzone.active {
-    border-color: #2196f3;
+.upload-area:hover {
+  border-color: #666;
 }
 
 .preview-image {
-    max-width: 100%;
-    max-height: 300px;
-    object-fit: contain;
+  max-width: 100%;
+  max-height: 300px;
+  margin-top: 10px;
 }
 
-.error-message {
-    color: #f44336;
-    margin-top: 8px;
-    font-size: 14px;
+.upload-button {
+  margin-top: 10px;
 } 

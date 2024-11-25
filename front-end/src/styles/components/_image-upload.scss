@@ -1,0 +1,30 @@
+.image-upload-container {
+  margin: 20px 0;
+
+  .dropzone {
+    border: 2px dashed $border-color;
+    border-radius: $border-radius-sm;
+    padding: $spacing-lg;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color $transition-speed ease;
+    background: $background-light;
+
+    &.active {
+      border-color: $primary-color;
+      background: $background-hover;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 300px;
+      margin-top: $spacing-sm;
+    }
+  }
+
+  .error-message {
+    color: $error-color;
+    margin-top: $spacing-sm;
+    font-size: $font-size-sm;
+  }
+} 

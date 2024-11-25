@@ -1,0 +1,32 @@
+.model-training-page {
+  padding: 2rem;
+  
+  .header {
+    margin-bottom: 2rem;
+    
+    h1 {
+      font-size: 2rem;
+      color: #333;
+    }
+  }
+  
+  .training-form {
+    max-width: 800px;
+    margin: 0 auto;
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .submit-button {
+      margin-top: 2rem;
+    }
+  }
+  
+  .training-status {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+  }
+} 
