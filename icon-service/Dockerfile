@@ -1,44 +1,28 @@
-FROM python:3.9-slim
+FROM python:3.9
 
-# Set working directory
 WORKDIR /app
 
-# Set environment variables
-ENV MODEL_PATH="/app/models"
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-ENV TRANSFORMERS_CACHE="/app/models/cache"
-ENV PIP_DEFAULT_TIMEOUT=1000
+# Create persistent directories
+RUN mkdir -p /app/shared/models /app/shared/cache
 
-# Install system dependencies and clean up in one layer
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
     git \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-# Create model cache directory
-RUN mkdir -p /app/models/cache \
-    && chmod -R 777 /app/models
-
-# Copy requirements and installation script
+# Copy requirements and install script
 COPY requirements.txt install_packages.sh ./
 RUN chmod +x install_packages.sh
 
-# Run installation script with retries
-RUN ./install_packages.sh || exit 1
+# Install Python packages with retry mechanism
+RUN ./install_packages.sh
 
-# Clean up
-RUN rm -rf ~/.cache/pip \
-    && pip3 cache purge \
-    && rm install_packages.sh
-
-# Copy application code
+# Copy the application
 COPY . .
 
-# Add volume for model cache
-VOLUME ["/app/models"]
+# Set environment variables for caching
+ENV HF_HOME=/app/shared/cache
+ENV TRANSFORMERS_CACHE=/app/shared/cache/transformers
+ENV DIFFUSERS_CACHE=/app/shared/cache/diffusers
 
-# Run the application with hot reload
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]

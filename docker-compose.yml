@@ -13,19 +13,24 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - REACT_APP_API_URL=http://localhost:8000
 
   icon-service:
-    build:
-      context: ./icon-service
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    build: ./icon-service
     volumes:
       - ./icon-service:/app
-      - /app/models
+      - microdawgs_model_cache:/app/shared/cache
+      - microdawgs_model_storage:/app/shared/models
+      - /app/node_modules
     environment:
-      - MODEL_PATH=/app/models
-      - TRANSFORMERS_CACHE=/app/models/cache
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - HF_HOME=/app/shared/cache
+      - TRANSFORMERS_CACHE=/app/shared/cache/transformers
+      - DIFFUSERS_CACHE=/app/shared/cache/diffusers
+    ports:
+      - "8000:8000"
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/src
     deploy:
       resources:
         limits:
@@ -42,8 +47,10 @@ services:
     restart: unless-stopped
 
 volumes:
-  model-data:
-    driver: local
+  microdawgs_model_cache:
+    name: microdawgs_model_cache
+  microdawgs_model_storage:
+    name: microdawgs_model_storage
 
 networks:
   app-network:

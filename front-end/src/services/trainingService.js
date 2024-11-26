@@ -4,9 +4,10 @@ export const trainingService = {
   uploadTrainingData: async (file, onProgress) => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('num_epochs', '100');
 
     try {
-      const response = await api.client.post('/api/generate/upload-training-data', 
+      const response = await api.client.post('/train', 
         formData,
         {
           headers: {
@@ -20,7 +21,7 @@ export const trainingService = {
       );
       return response.data;
     } catch (error) {
-      throw error.response?.data?.detail || 'Upload failed';
+      throw error.response?.data?.detail || 'Training failed';
     }
   }
 }; 

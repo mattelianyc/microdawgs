@@ -11,7 +11,11 @@ install_with_retry() {
     while [ $attempt -le $max_attempts ]; do
         echo "Attempt $attempt of $max_attempts: Installing Python packages..."
         
-        if pip3 install --no-cache-dir -r requirements.txt; then
+        # Upgrade pip first
+        pip3 install --upgrade pip
+        
+        # Try installation with verbose output
+        if pip3 install --no-cache-dir -r requirements.txt -v; then
             echo "Installation successful!"
             return 0
         else
@@ -24,9 +28,6 @@ install_with_retry() {
                 echo "Cleaning up..."
                 rm -rf ~/.cache/pip
                 pip3 cache purge
-                
-                echo "Updating pip..."
-                pip3 install --upgrade pip
             fi
         fi
         
@@ -37,4 +38,8 @@ install_with_retry() {
     return 1
 }
 
+# Make sure we have the latest package tools
+pip3 install --upgrade pip setuptools wheel
+
+# Start installation
 install_with_retry $MAX_ATTEMPTS $WAIT_TIME 

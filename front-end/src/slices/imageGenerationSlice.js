@@ -1,30 +1,30 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../services/api';
 
 export const generateIcon = createAsyncThunk(
   'imageGeneration/generateIcon',
-  async ({ prompt, num_steps = 20, guidance_scale = 7.5 }, { rejectWithValue }) => {
+  async (promptData, { dispatch }) => {
     try {
+      dispatch(setLoading(true));
+      
       const formData = new FormData();
-      formData.append('prompt', prompt);
-      formData.append('num_steps', num_steps);
-      formData.append('guidance_scale', guidance_scale);
+      formData.append('prompt', promptData.prompt);
+      formData.append('num_steps', '20');
+      formData.append('guidance_scale', '7.5');
 
-      const response = await api.client.post('/generate', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        responseType: 'blob',
+      const response = await fetch('http://localhost:8000/generate', {
+        method: 'POST',
+        body: formData,
       });
 
-      const imageUrl = URL.createObjectURL(response.data);
+      if (!response.ok) {
+        throw new Error('Failed to generate icon');
+      }
+
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
       return imageUrl;
     } catch (error) {
-      console.error('Generation error:', error);
-      return rejectWithValue(
-        error.response?.data?.detail || 
-        'Failed to generate icon. Please try again.'
-      );
+      throw error;
     }
   }
 );
@@ -32,32 +32,54 @@ export const generateIcon = createAsyncThunk(
 const imageGenerationSlice = createSlice({
   name: 'imageGeneration',
   initialState: {
-    generatedImage: null,
     loading: false,
     error: null,
+    generatedImage: null,
+    progress: 0,
+    progressMessage: ''
   },
   reducers: {
-    clearGeneratedImage: (state) => {
-      state.generatedImage = null;
-      state.error = null;
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+      if (!action.payload) {
+        state.progress = 0;
+        state.progressMessage = '';
+      }
     },
+    setProgress: (state, action) => {
+      state.progress = action.payload.progress;
+      state.progressMessage = action.payload.message;
+    },
+    clearState: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.generatedImage = null;
+      state.progress = 0;
+      state.progressMessage = '';
+    }
   },
   extraReducers: (builder) => {
     builder
       .addCase(generateIcon.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.progress = 0;
+        state.progressMessage = 'Starting generation...';
       })
       .addCase(generateIcon.fulfilled, (state, action) => {
         state.loading = false;
         state.generatedImage = action.payload;
+        state.progress = 100;
+        state.progressMessage = 'Generation complete!';
       })
       .addCase(generateIcon.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
+        state.progress = 0;
+        state.progressMessage = '';
       });
   },
 });
 
-export const { clearGeneratedImage } = imageGenerationSlice.actions;
+export const { setLoading, setProgress, clearState } = imageGenerationSlice.actions;
 export default imageGenerationSlice.reducer; 
